@@ -1,0 +1,64 @@
+import requests
+import pandas as pd
+
+
+
+cookies = {
+    'AGS_ROLES': '"419jqfa+uOZgYod4xPOQ8Q=="',
+    '_gcl_au': '1.1.1603369339.1720718015',
+    '_fbp': 'fb.2.1720718014667.662187759354348412',
+    '_gid': 'GA1.3.1676852838.1720718016',
+    '_ga_0QDN89X22D': 'GS1.1.1720718019.1.0.1720718019.0.0.0',
+    'isfirst_https%3A%2F%2Fgeoportal.sgb.gov.br%2Fgeosgb%2F': 'false',
+}
+
+headers = {
+    'accept': '*/*',
+    'accept-language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+    'priority': 'u=1, i',
+    'referer': 'https://geoportal.sgb.gov.br/geosgb/',
+    'sec-ch-ua': '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-ch-ua-platform': '"Windows"',
+    'sec-fetch-dest': 'empty',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-site': 'same-origin',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+}
+
+# Parâmetros iniciais da consulta
+params = {
+    'f': 'json',
+    'where': "tipolo_g1 = 'Inundação'",
+    'spatialRel': 'esriSpatialRelIntersects',
+    'geometry': '{"xmin":-6053425.609276653,"ymin":-2380260.347003114,"xmax":-5133735.2849496575,"ymax":-1603660.1396259298,"spatialReference":{"wkid":102100}}',
+    'geometryType': 'esriGeometryEnvelope',
+    'inSR': '102100',
+    'outFields': 'objectid,uf,munic,num_setor,local,tipolo_g1,tipolo_e1,cobrade_01,tipolo_g2,tipolo_e2,cobrade_02,tipolo_g3,tipolo_e3,cobrade_03,tipolo_g4,tipolo_e4,cobrade_04,tipolo_g5,tipolo_e5,cobrade_05,obs_ocup,grau_vulne,grau_risco,orgao_exec,descricao,sug_interv,data_setor,cd_geocmu,num_edif,num_pess,num_domi,gestao_territorial.risco.risco.fid',
+    'orderByFields': 'objectid ASC',
+    'outSR': '102100',
+    'resultOffset': 0,  # Começa do primeiro registro
+    'resultRecordCount': 2000,  # Quantidade de registros por página
+}
+
+response = requests.get(
+    'https://geoportal.sgb.gov.br/server/rest/services/gestaoterritorial/risco/MapServer/0/query',
+    params=params,
+    cookies=cookies,
+    headers=headers,
+)
+if response.status_code == 200:
+    data = response.json()
+    if 'features' in data:
+        features = data['features']
+        print(f"Number of features returned: {len(features)}")
+        df = pd.json_normalize(features)
+        pd.set_option('display.max_columns', None)  # Exibe todas as colunas do DataFrame
+        pd.set_option('display.max_rows', None)     # Exibe todas as linhas do DataFrame
+        display(df)
+    else:
+        print("No 'features' found in JSON response.")
+else:
+    print(f"Failed to retrieve data. Status code: {response.status_code}")
+
+
