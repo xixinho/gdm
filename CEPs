@@ -1,0 +1,31 @@
+import requests
+import pandas as pd
+
+cep ='88521640'
+
+link = f'https://viacep.com.br/ws/{cep}/json/'
+
+requisicao = requests.get(link)
+
+if requisicao.status_code == 200:
+    dic_requisicao = requisicao.json()
+
+    uf = dic_requisicao.get('uf', '')
+    localidade = dic_requisicao.get('localidade', '')
+    logradouro = dic_requisicao.get('logradouro', '')
+    bairro = dic_requisicao.get('bairro', '')
+
+    print(f"UF: {uf}, Localidade: {localidade}, Logradouro: {logradouro}, Bairro: {bairro}")
+
+    # Criando DataFrame com os dados do endereço
+    tabela = pd.DataFrame({
+        'UF': [uf],
+        'Localidade': [localidade],
+        'Logradouro': [logradouro],
+        'Bairro': [bairro]
+    })
+
+    display(tabela)
+
+else:
+    print(f"Erro ao consultar CEP {cep}. Status Code: {requisicao.status_code}")
