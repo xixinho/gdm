@@ -1,0 +1,47 @@
+import requests
+import pandas as pd
+
+
+
+ufs = ['SP']
+cidades = ['SÃO PAULO']
+enderecos = ['PAULISTA']
+dados_enderecos = []
+
+for uf in ufs:
+    for cidade in cidades:
+        for endereco in enderecos:
+            link = f'https://viacep.com.br/ws/{uf}/{cidade}/{endereco}/json/'
+            requisicao = requests.get(link)
+            
+            if requisicao.status_code == 200:
+                endereco_info = requisicao.json()  # Retorna um dicionário de endereço ou uma lista de dicionários
+            
+                if not isinstance(endereco_info, list):
+                    endereco_info = [endereco_info]
+                
+                for info in endereco_info:
+                    if 'erro' not in info:
+                        cep = info.get('cep', '')
+                        logradouro = info.get('logradouro', '')
+                        bairro = info.get('bairro', '')
+                        localidade = info.get('localidade', '')
+                        uf = info.get('uf', '')
+                        
+                        dados_enderecos.append({
+                            'CEP': cep,
+                            'Logradouro': logradouro,
+                            'Bairro': bairro,
+                            'Localidade': localidade,
+                            'UF': uf,
+                            'Endereco': endereco
+                        })
+                    else:
+                        print(f"Endereço '{endereco}' em '{cidade}/{uf}' não encontrado.")
+            else:
+                print(f"Erro ao consultar endereço {endereco} em {cidade}/{uf}. Status Code: {requisicao.status_code}")
+
+
+tabela_enderecos = pd.DataFrame(dados_enderecos)
+pd.set_option('display.max_rows', None)
+display(tabela_enderecos)
